@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BarraProgresso } from "@/components/BarraProgresso";
 import { Cabecalho } from "@/components/Cabecalho";
 import { Aberto } from "@/components/etapas/Aberto";
@@ -15,12 +15,7 @@ import { criarEstado, gravarRascunho, lerRascunho, limparRascunho } from "@/lib/
 import type { AlterarEstado, Estado, Etapa, Recibo } from "@/lib/tipos";
 import { dadosDoEstado, ID_RESERVADO, validarDados, validarEtapa } from "@/lib/validacao";
 
-function semInscricao() {
-  return () => {};
-}
-
 export function Consulta() {
-  const noCliente = useSyncExternalStore(semInscricao, () => true, () => false);
   const [estado, setEstado] = useState<Estado | null>(null);
   const [recibo, setRecibo] = useState<Recibo | null>(null);
   const [pronto, setPronto] = useState(false);
@@ -29,7 +24,9 @@ export function Consulta() {
   const tituloRef = useRef<HTMLHeadingElement>(null);
   const alertaRef = useRef<HTMLParagraphElement>(null);
 
-  if (noCliente && !pronto) {
+  // O rascunho fica no navegador e só pode ser lido depois da montagem.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
     const salvo = lerRascunho();
     if (salvo?.recibo) {
       setRecibo(salvo.recibo);
@@ -44,7 +41,8 @@ export function Consulta() {
       setEstado(criarEstado());
     }
     setPronto(true);
-  }
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!pronto || !estado) return;
