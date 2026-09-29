@@ -22,9 +22,19 @@ export function Prioridades({
       <p className="intro">{TEXTO_PRIORIDADES}</p>
       <nav className="atalhos" aria-label="Ir para uma diretriz">
         {GRUPOS_PRIORIDADE.map((grupo) => (
-          <a key={grupo.id} href={`#grupo-${grupo.id}`}>
+          <button
+            key={grupo.id}
+            type="button"
+            onClick={() => {
+              const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+              document.getElementById(`grupo-${grupo.id}`)?.scrollIntoView({
+                behavior: reduzir ? "auto" : "smooth",
+                block: "start",
+              });
+            }}
+          >
             {grupo.atalho}
-          </a>
+          </button>
         ))}
       </nav>
       {estado.prioridades.length === 3 ? (
