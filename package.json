@@ -1,0 +1,33 @@
+{
+  "name": "consulta-participativa",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "tsx --test lib/validacao.test.ts lib/banco.test.ts",
+    "sintese": "tsx scripts/sintese.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@neondatabase/serverless": "^1.0.2",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "latest",
+    "sharp": "^0.34.3",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
