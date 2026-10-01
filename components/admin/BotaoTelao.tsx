@@ -6,7 +6,7 @@ export function abrirTelao() {
 
 export function BotaoTelao({ grande = false }: { grande?: boolean }) {
   return (
-    <button type="button" className={grande ? "adm-botao telao grande" : "adm-botao telao"} onClick={abrirTelao}>
+    <button type="button" className={grande ? "adm-botao acao-telao grande" : "adm-botao acao-telao"} onClick={abrirTelao}>
       Apresentar no Telão
     </button>
   );
