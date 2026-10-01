@@ -13,7 +13,7 @@ A consulta coleta apenas sugestões para aprimorar as ações dentro dessas dire
 
 ## Anonimato
 
-O painel não pede nome, CPF, e-mail, telefone, município, instituição, cargo, região ou qualquer outro dado pessoal. Não há login, cadastro ou área administrativa.
+O formulário público não pede nome, CPF, e-mail, telefone, município, instituição, cargo, região ou qualquer outro dado pessoal. Quem participa não faz login. A área administrativa fica em um endereço separado e não aparece nas telas dos membros.
 
 Cada contribuição recebe somente:
 
@@ -40,6 +40,18 @@ Sem `DATABASE_URL`, o ambiente local usa um Postgres embutido na pasta `.data/`.
 3. Faça o deploy.
 
 Na primeira contribuição, o aplicativo cria a tabela `contribuicoes` e as visões de agregação. Não é preciso rodar uma migração manual.
+
+## Área administrativa
+
+O endereço `/admin` é exclusivo de quem administra a consulta. Ele pede usuário e senha, definidos nas variáveis `ADMIN_USER`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET`. Sem essas três variáveis, o login não abre.
+
+O painel lê as contribuições já gravadas. Não altera perguntas, diretrizes nem o formulário dos membros. É possível filtrar, exportar Excel, CSV e PDF, ver as contagens e abrir a apresentação de telão em outra aba. A seta direita avança, a seta esquerda volta e Esc retorna ao painel.
+
+As respostas não ficam em uma página pública. Quem não está autenticado recebe recusa ao tentar a leitura administrativa. O formulário público continua aceitando somente o envio da própria contribuição.
+
+A consulta não identifica participantes e não usa escala alta, média ou baixa. A prioridade exibida é a escolha das 3 ações. Rascunhos que não foram enviados permanecem no aparelho de quem participa. O percentual de participação usa o total de membros informado em Configurações.
+
+Retirar uma resposta das contagens pede confirmação e não apaga o registro original.
 
 ## Síntese para a equipe, fora do painel
 
