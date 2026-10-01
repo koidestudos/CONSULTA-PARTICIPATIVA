@@ -60,6 +60,24 @@ COMMENT ON TABLE contribuicoes IS 'Contribuições anônimas da consulta do Plan
   `
 CREATE INDEX IF NOT EXISTS contribuicoes_enviado_em_idx ON contribuicoes (enviado_em DESC)
 `.trim(),
+  `
+ALTER TABLE contribuicoes ADD COLUMN IF NOT EXISTS excluida_em timestamptz
+`.trim(),
+  `
+COMMENT ON COLUMN contribuicoes.excluida_em IS
+  'Preenchido quando a administração arquiva a contribuição. O registro original permanece na tabela.'
+`.trim(),
+  `
+CREATE TABLE IF NOT EXISTS configuracoes (
+  chave text PRIMARY KEY,
+  valor text NOT NULL,
+  CONSTRAINT configuracoes_tamanho CHECK (char_length(chave) <= 40 AND char_length(valor) <= 40)
+)
+`.trim(),
+  `
+COMMENT ON TABLE configuracoes IS
+  'Ajustes do painel administrativo, sem dados de participantes.'
+`.trim(),
   `DROP VIEW IF EXISTS vw_frequencia_sugestoes`,
   `DROP VIEW IF EXISTS vw_sugestoes_abertas`,
   `DROP VIEW IF EXISTS vw_acoes_mais_escolhidas`,
@@ -74,22 +92,26 @@ SELECT
   MIN(enviado_em) AS primeira_resposta,
   MAX(enviado_em) AS ultima_resposta
 FROM contribuicoes
+WHERE excluida_em IS NULL
 `.trim(),
   `
 CREATE VIEW vw_acoes_mais_escolhidas AS
 SELECT 'diretriz_1'::text AS origem, acao, COUNT(*)::int AS frequencia
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(d1_acoes) AS acao
+WHERE excluida_em IS NULL
 GROUP BY acao
 UNION ALL
 SELECT 'diretriz_2'::text, acao, COUNT(*)::int
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(d2_acoes) AS acao
+WHERE excluida_em IS NULL
 GROUP BY acao
 UNION ALL
 SELECT 'diretriz_4'::text, acao, COUNT(*)::int
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(d4_acoes) AS acao
+WHERE excluida_em IS NULL
 GROUP BY acao
 `.trim(),
   `
@@ -97,6 +119,7 @@ CREATE VIEW vw_temas_capacitacao AS
 SELECT tema, COUNT(*)::int AS frequencia
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(d3_temas) AS tema
+WHERE excluida_em IS NULL
 GROUP BY tema
 `.trim(),
   `
@@ -104,6 +127,7 @@ CREATE VIEW vw_formatos_capacitacao AS
 SELECT formato, COUNT(*)::int AS frequencia
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(d3_formatos) AS formato
+WHERE excluida_em IS NULL
 GROUP BY formato
 `.trim(),
   `
@@ -111,61 +135,62 @@ CREATE VIEW vw_prioridades AS
 SELECT prioridade, COUNT(*)::int AS frequencia
 FROM contribuicoes
 CROSS JOIN LATERAL jsonb_array_elements_text(prioridades) AS prioridade
+WHERE excluida_em IS NULL
 GROUP BY prioridade
 `.trim(),
   `
 CREATE VIEW vw_sugestoes_abertas AS
 SELECT id, enviado_em, 'diretriz_1'::text AS origem, 'nova_acao'::text AS campo, d1_sugestao AS texto
 FROM contribuicoes
-WHERE d1_sugestao IS NOT NULL AND btrim(d1_sugestao) <> ''
+WHERE excluida_em IS NULL AND d1_sugestao IS NOT NULL AND btrim(d1_sugestao) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_1', 'outra', d1_outra
 FROM contribuicoes
-WHERE d1_outra IS NOT NULL AND btrim(d1_outra) <> ''
+WHERE excluida_em IS NULL AND d1_outra IS NOT NULL AND btrim(d1_outra) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_2', 'nova_acao', d2_sugestao
 FROM contribuicoes
-WHERE d2_sugestao IS NOT NULL AND btrim(d2_sugestao) <> ''
+WHERE excluida_em IS NULL AND d2_sugestao IS NOT NULL AND btrim(d2_sugestao) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_2', 'outra', d2_outra
 FROM contribuicoes
-WHERE d2_outra IS NOT NULL AND btrim(d2_outra) <> ''
+WHERE excluida_em IS NULL AND d2_outra IS NOT NULL AND btrim(d2_outra) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_3', 'educacao_permanente', d3_sugestao
 FROM contribuicoes
-WHERE d3_sugestao IS NOT NULL AND btrim(d3_sugestao) <> ''
+WHERE excluida_em IS NULL AND d3_sugestao IS NOT NULL AND btrim(d3_sugestao) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_3', 'outro_tema', d3_outro_tema
 FROM contribuicoes
-WHERE d3_outro_tema IS NOT NULL AND btrim(d3_outro_tema) <> ''
+WHERE excluida_em IS NULL AND d3_outro_tema IS NOT NULL AND btrim(d3_outro_tema) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_3', 'outro_formato', d3_outro_formato
 FROM contribuicoes
-WHERE d3_outro_formato IS NOT NULL AND btrim(d3_outro_formato) <> ''
+WHERE excluida_em IS NULL AND d3_outro_formato IS NOT NULL AND btrim(d3_outro_formato) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_4', 'informacao_ou_ferramenta', d4_sugestao
 FROM contribuicoes
-WHERE d4_sugestao IS NOT NULL AND btrim(d4_sugestao) <> ''
+WHERE excluida_em IS NULL AND d4_sugestao IS NOT NULL AND btrim(d4_sugestao) <> ''
 UNION ALL
 SELECT id, enviado_em, 'diretriz_4', 'outra', d4_outra
 FROM contribuicoes
-WHERE d4_outra IS NOT NULL AND btrim(d4_outra) <> ''
+WHERE excluida_em IS NULL AND d4_outra IS NOT NULL AND btrim(d4_outra) <> ''
 UNION ALL
 SELECT id, enviado_em, 'prioridades', 'motivo', motivo_prioridades
 FROM contribuicoes
-WHERE motivo_prioridades IS NOT NULL AND btrim(motivo_prioridades) <> ''
+WHERE excluida_em IS NULL AND motivo_prioridades IS NOT NULL AND btrim(motivo_prioridades) <> ''
 UNION ALL
 SELECT id, enviado_em, 'espaco_aberto', 'mudanca_unica', mudanca_unica
 FROM contribuicoes
-WHERE mudanca_unica IS NOT NULL AND btrim(mudanca_unica) <> ''
+WHERE excluida_em IS NULL AND mudanca_unica IS NOT NULL AND btrim(mudanca_unica) <> ''
 UNION ALL
 SELECT id, enviado_em, 'espaco_aberto', 'manter_ou_ampliar', manter_ou_ampliar
 FROM contribuicoes
-WHERE manter_ou_ampliar IS NOT NULL AND btrim(manter_ou_ampliar) <> ''
+WHERE excluida_em IS NULL AND manter_ou_ampliar IS NOT NULL AND btrim(manter_ou_ampliar) <> ''
 UNION ALL
 SELECT id, enviado_em, 'espaco_aberto', 'revisar_ou_encerrar', revisar_ou_encerrar
 FROM contribuicoes
-WHERE revisar_ou_encerrar IS NOT NULL AND btrim(revisar_ou_encerrar) <> ''
+WHERE excluida_em IS NULL AND revisar_ou_encerrar IS NOT NULL AND btrim(revisar_ou_encerrar) <> ''
 `.trim(),
   `
 CREATE VIEW vw_frequencia_sugestoes AS

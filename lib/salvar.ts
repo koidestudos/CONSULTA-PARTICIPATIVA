@@ -21,6 +21,7 @@ INSERT INTO contribuicoes (
 )
 ON CONFLICT (id) DO UPDATE SET
   enviado_em = now(),
+  excluida_em = NULL,
   d1_acoes = EXCLUDED.d1_acoes,
   d1_outra = EXCLUDED.d1_outra,
   d1_sugestao = EXCLUDED.d1_sugestao,
@@ -64,12 +65,17 @@ function iso(valor: unknown): string {
   return data.toISOString();
 }
 
+export async function prepararBanco(execInformado?: Executor) {
+  const exec = execInformado ?? (await obterExecutor());
+  await esquemaPronto(exec);
+  return exec;
+}
+
 export async function salvarContribuicao(
   dados: DadosContribuicao,
   execInformado?: Executor,
 ): Promise<Recibo> {
-  const exec = execInformado ?? (await obterExecutor());
-  await esquemaPronto(exec);
+  const exec = await prepararBanco(execInformado);
   const linhas = await exec.query(SQL_INSERIR, [
     dados.id,
     JSON.stringify(dados.d1Acoes),
